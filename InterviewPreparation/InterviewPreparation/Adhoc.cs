@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace Interview
 {
@@ -123,9 +124,87 @@ namespace Interview
             return minCost;
         }
 
-        //public static T CostOptimization<T>(List<T[]> list)
-        //{
+        public IEnumerable<List<T>> Permute<T>(IEnumerable<T> array)
+        {
+            var length = array.Count();
+            var used = new bool[length];
+            var sb = new List<T>();
+            return doPermute<T>(array, sb, used, length, 0);
+        }
 
-        //}
+        public IEnumerable<List<T>> Permute<T>(IEnumerable<T> array, int r)
+        {
+            var used = new bool[r];
+            var sb = new List<T>();
+            return doPermute<T>(array, sb, used, r, 0);
+        }
+
+        private IEnumerable<List<T>> doPermute<T>(IEnumerable<T> array, List<T> sb, bool[] used, int length, int level)
+        {
+            var permuteArray = new List<List<T>>();
+            if (level == length)
+            {
+                permuteArray.Add(sb.ToList());
+                return permuteArray;
+            }
+
+            for(int i=0; i<length; i++)
+            {
+                if (used[i]) continue;
+
+                used[i] = true;
+                sb.Add(array.ElementAt(i));
+                
+                var permute = doPermute(array, sb, used, length, level + 1);
+                permuteArray = permuteArray.Concat(permute).ToList();
+                used[i] = false;
+                sb.RemoveAt(sb.Count()-1);
+            }
+
+            return permuteArray;
+        }
+
+        private int fact(int n)
+        {
+            if (n < 1)
+                return 0;
+
+            int f = 1;
+            while (n > 0)
+                f *= n--;
+
+            return f;
+        }
+
+        public IEnumerable<List<T>> Combinations<T>(IEnumerable<T> arr)
+        {
+            return this.Combinations<T>(arr, -1);
+        }
+
+        public IEnumerable<List<T>> Combinations<T>(IEnumerable<T> arr, int r)
+        {
+            Stack<T> stack = new Stack<T>(arr);
+            int capacity = fact(arr.Count());
+            var combinations = new List<List<T>>(capacity);
+            
+            while (stack.Count() != 0)
+            {
+                var e = stack.Pop();
+                var element = new List<T>(1) { e };
+                foreach(var c in combinations.ToArray())
+                {
+                    if (r > 0 && r < c.Count)
+                        continue;
+
+                    var currentCombinaion = element.Concat(c);
+                    combinations.Add(currentCombinaion.ToList());
+                }
+
+                combinations.Add(element);
+            }
+
+            return combinations.Where(c => r < 1 || c.Count == r).AsEnumerable();
+        }
     }
+    
 }
